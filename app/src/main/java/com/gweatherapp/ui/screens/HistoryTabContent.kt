@@ -38,11 +38,11 @@ fun HistoryTabContent(viewModel: WeatherViewModel) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(historyItems) { item ->
-            val calendar = Calendar.getInstance().apply { timeInMillis = item.fetchedAtTimestamp }
-            val isPastSixPM = calendar.get(Calendar.HOUR_OF_DAY) >= 18
+            val fetchedTimeSec = item.fetchedAtTimestamp / 1000
+            val isNightTime = fetchedTimeSec < item.weatherData.sys.sunrise || fetchedTimeSec >= item.weatherData.sys.sunset
 
-            val iconVector = if (isPastSixPM) Icons.Filled.Nightlight else Icons.Default.WbSunny
-            val iconColor = if (isPastSixPM) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
+            val iconVector = if (isNightTime) Icons.Filled.Nightlight else Icons.Default.WbSunny
+            val iconColor = if (isNightTime) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
