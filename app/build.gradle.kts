@@ -79,6 +79,10 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("org.mockito:mockito-core:5.5.0")
 
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+    testImplementation("org.mockito:mockito-inline:5.2.0")
+
     implementation("androidx.compose.material:material-icons-core")
     // Optional: If you want access to all extended icons later
     implementation("androidx.compose.material:material-icons-extended")

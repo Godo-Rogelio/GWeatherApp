@@ -1,5 +1,6 @@
 package com.gweatherapp.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,6 +13,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gweatherapp.data.model.WeatherResponse
@@ -19,6 +24,7 @@ import com.gweatherapp.ui.viewmodel.WeatherUiState
 import com.gweatherapp.ui.viewmodel.WeatherViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import com.gweatherapp.R
 
 @Composable
 fun WeatherTabContent(viewModel: WeatherViewModel) {
@@ -61,111 +67,170 @@ private fun WeatherDisplayCard(data: WeatherResponse) {
         else -> MaterialTheme.colorScheme.tertiary
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = iconVector,
-            contentDescription = null,
-            modifier = Modifier.size(120.dp),
-            tint = iconColor
-        )
+    val backgroundDrawableRes = if (isNightTime) {
+        R.drawable.evening_bg
+    } else {
+        R.drawable.morning_bg
+    }
 
-        Spacer(modifier = Modifier.height(16.dp))
+    val contentColor = if (isNightTime) Color.White else Color.Black
 
-        Text(
-            text = "${data.cityName}, ${data.sys.country}",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "${data.main.temp}°",
-            style = MaterialTheme.typography.displayLarge,
-            fontWeight = FontWeight.Light,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+    val gradientBrush = if (isNightTime) {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color(0xFF0F2027).copy(alpha = 0.6f),
+                Color(0xFF203A43).copy(alpha = 0.4f),
+                Color(0xFF2C5364).copy(alpha = 0.7f)
             )
+        )
+    } else {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color(0xFF741AAC).copy(alpha = 0.3f),
+                Color(0xFFB47BE2).copy(alpha = 0.2f),
+                Color(0xFFE4FAFF).copy(alpha = 0.6f)
+            )
+        )
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = backgroundDrawableRes),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(gradientBrush)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+            Icon(
+                imageVector = iconVector,
+                contentDescription = null,
+                modifier = Modifier.size(160.dp),
+                tint = iconColor
+            )
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.WbSunny,
-                        contentDescription = null,
-                        modifier = Modifier.size(28.dp),
-                        tint = MaterialTheme.colorScheme.tertiary
-                    )
-                    Column {
-                        Text(
-                            text = "Sunrise",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = timeFormat.format(Date(data.sys.sunrise * 1000)),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "${data.cityName}, ${data.sys.country}",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Normal,
+                color = contentColor
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "${data.main.temp}°",
+                style = MaterialTheme.typography.displayLarge,
+                fontWeight = FontWeight.Light,
+                color = contentColor
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isNightTime) {
+                        Color.White.copy(alpha = 0.15f)
+                    } else {
+                        Color.Black.copy(alpha = 0.08f)
                     }
-                }
-
-                Box(
-                    modifier = Modifier
-                        .height(36.dp)
-                        .width(1.dp)
-                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
                 )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.WbTwilight,
-                        contentDescription = null,
-                        modifier = Modifier.size(28.dp),
-                        tint = MaterialTheme.colorScheme.secondary
-                    )
-                    Column {
-                        Text(
-                            text = "Sunset",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+                    val fullDateFormat = SimpleDateFormat("yyyy-MM-dd · hh:mm a", Locale.getDefault())
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.WbSunny,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.tertiary
+                            )
+                            Column {
+                                Text(
+                                    text = "Sunrise:",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = contentColor.copy(alpha = 0.7f)
+                                )
+                                Text(
+                                    text = timeFormat.format(Date(data.sys.sunrise * 1000)),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = contentColor
+                                )
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .height(32.dp)
+                                .width(1.dp)
+                                .background(contentColor.copy(alpha = 0.2f))
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = timeFormat.format(Date(data.sys.sunset * 1000)),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.WbTwilight,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+                            Column {
+                                Text(
+                                    text = "Sunset:",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = contentColor.copy(alpha = 0.7f)
+                                )
+                                Text(
+                                    text = timeFormat.format(Date(data.sys.sunset * 1000)),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = contentColor
+                                )
+                            }
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Fetched: ${fullDateFormat.format(Date())}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = contentColor.copy(alpha = 0.7f)
+                    )
                 }
             }
         }
