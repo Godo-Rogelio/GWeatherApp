@@ -21,7 +21,7 @@ import com.gweatherapp.ui.viewmodel.WeatherUiState
 import com.gweatherapp.R
 
 @Composable
-fun DashboardScreen(viewModel: WeatherViewModel, apiKey: String, contentPadding: PaddingValues) {
+fun DashboardScreen(viewModel: WeatherViewModel, apiKey: String, city: String, contentPadding: PaddingValues) {
     val tabTitles = listOf("Current Weather", "Fetch History")
     val pagerState = rememberPagerState(pageCount = { tabTitles.size })
     val coroutineScope = rememberCoroutineScope()
@@ -49,18 +49,17 @@ fun DashboardScreen(viewModel: WeatherViewModel, apiKey: String, contentPadding:
             )
         )
     } else {
-        // Clean, vibrant blue/warm day tints instead of purples
         Brush.verticalGradient(
             colors = listOf(
-                Color(0xFF3A7BD5).copy(alpha = 0.25f), // Soft Clear Blue
-                Color(0xFF3A6073).copy(alpha = 0.10f), // Very subtle contrast stabilizer
-                Color(0xFFFFFFFF).copy(alpha = 0.40f)  // Bright daylight gradient base
+                Color(0xFF3A7BD5).copy(alpha = 0.25f),
+                Color(0xFF3A6073).copy(alpha = 0.10f),
+                Color(0xFFFFFFFF).copy(alpha = 0.40f)
             )
         )
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.loadWeather("Manila", apiKey)
+    LaunchedEffect(city) {
+        viewModel.loadWeather(city, apiKey)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
