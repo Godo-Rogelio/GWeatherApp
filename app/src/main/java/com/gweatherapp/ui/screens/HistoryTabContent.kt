@@ -11,8 +11,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.gweatherapp.ui.viewmodel.WeatherUiState
 import com.gweatherapp.ui.viewmodel.WeatherViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -20,13 +22,26 @@ import java.util.*
 @Composable
 fun HistoryTabContent(viewModel: WeatherViewModel) {
     val historyItems by viewModel.historyList.collectAsState()
+    val uiState by viewModel.weatherState.collectAsState()
+
+    val isCurrentAppThemeNight = remember(uiState) {
+        if (uiState is WeatherUiState.Success) {
+            val data = (uiState as WeatherUiState.Success).data
+            val currentTimeSec = System.currentTimeMillis() / 1000
+            currentTimeSec < data.sys.sunrise || currentTimeSec >= data.sys.sunset
+        } else {
+            true
+        }
+    }
+
+    val contentColor = if (isCurrentAppThemeNight) Color.White else Color.Black
 
     if (historyItems.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 text = "No lookups cached yet.",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = contentColor.copy(alpha = 0.6f)
             )
         }
         return
@@ -39,16 +54,20 @@ fun HistoryTabContent(viewModel: WeatherViewModel) {
     ) {
         items(historyItems) { item ->
             val fetchedTimeSec = item.fetchedAtTimestamp / 1000
-            val isNightTime = fetchedTimeSec < item.weatherData.sys.sunrise || fetchedTimeSec >= item.weatherData.sys.sunset
+            val isEntryItemNight = fetchedTimeSec < item.weatherData.sys.sunrise || fetchedTimeSec >= item.weatherData.sys.sunset
 
-            val iconVector = if (isNightTime) Icons.Filled.Nightlight else Icons.Default.WbSunny
-            val iconColor = if (isNightTime) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
+            val iconVector = if (isEntryItemNight) Icons.Filled.Nightlight else Icons.Default.WbSunny
+            val iconColor = if (isEntryItemNight) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                    containerColor = if (isCurrentAppThemeNight) {
+                        Color.White.copy(alpha = 0.15f)
+                    } else {
+                        Color.Black.copy(alpha = 0.05f)
+                    }
                 )
             ) {
                 Row(
@@ -75,7 +94,7 @@ fun HistoryTabContent(viewModel: WeatherViewModel) {
                                 text = "${item.weatherData.cityName}, ${item.weatherData.sys.country}",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = contentColor
                             )
                             Spacer(modifier = Modifier.height(4.dp))
 
@@ -85,7 +104,7 @@ fun HistoryTabContent(viewModel: WeatherViewModel) {
                             Text(
                                 text = "Fetched: $formattedTime",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = contentColor.copy(alpha = 0.7f)
                             )
                         }
                     }
@@ -94,7 +113,7 @@ fun HistoryTabContent(viewModel: WeatherViewModel) {
                         text = "${item.weatherData.main.temp}°",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = contentColor
                     )
                 }
             }

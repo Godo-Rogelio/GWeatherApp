@@ -51,12 +51,12 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             GWeatherAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                    ) {
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                ) { innerPadding ->
+
+                    Box(modifier = Modifier.fillMaxSize()) {
                         val apiKey = BuildConfig.OPENWEATHER_API_KEY
 
                         var isLoggedIn by remember {
@@ -64,17 +64,21 @@ class MainActivity : ComponentActivity() {
                         }
 
                         if (!isLoggedIn) {
-                            AuthScreen(
-                                viewModel = authViewModel,
-                                onAuthSuccess = {
-                                    sharedPrefs.edit().putBoolean("is_logged_in", true).apply()
-                                    isLoggedIn = true
-                                }
-                            )
+                            // Pass padding down to keep form elements safe from system bars
+                            Box(modifier = Modifier.padding(innerPadding)) {
+                                AuthScreen(
+                                    viewModel = authViewModel,
+                                    onAuthSuccess = {
+                                        sharedPrefs.edit().putBoolean("is_logged_in", true).apply()
+                                        isLoggedIn = true
+                                    }
+                                )
+                            }
                         } else {
                             DashboardScreen(
                                 viewModel = weatherViewModel,
-                                apiKey = apiKey
+                                apiKey = apiKey,
+                                contentPadding = innerPadding
                             )
                         }
                     }
