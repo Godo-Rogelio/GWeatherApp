@@ -1,49 +1,117 @@
 package com.gweatherapp.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.gweatherapp.ui.viewmodel.AuthState
 import com.gweatherapp.ui.viewmodel.AuthViewModel
+import com.gweatherapp.ui.viewmodel.AuthUiState
 
 @Composable
 fun AuthScreen(viewModel: AuthViewModel, onAuthSuccess: () -> Unit) {
-    var email by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val state by viewModel.authState.collectAsState(initial = AuthState.Unauthenticated)
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    val uiState by viewModel.uiState.collectAsState()
+    val isRegisterMode by viewModel.isRegisterMode.collectAsState()
+
+    LaunchedEffect(uiState) {
+        if (uiState is AuthUiState.Success) {
+            onAuthSuccess()
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        Text("Welcome to WeatherApp", style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(16.dp))
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = if (isRegisterMode) "Create Account" else "Welcome Back",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
 
-        OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email/Username") })
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation()
-        )
-        Spacer(modifier = Modifier.height(24.dp))
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = {
+                        username = it
+                        viewModel.clearError()
+                    },
+                    label = { Text("Username") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Button(onClick = { viewModel.signIn(email, password) }) { Text("Sign In") }
-            OutlinedButton(onClick = { viewModel.register(email, password) }) { Text("Register") }
-        }
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = {
+                        password = it
+                        viewModel.clearError()
+                    },
+                    label = { Text("Password") },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true
+                )
 
-        if (state is AuthState.Error) {
-            Text((state as AuthState.Error).message, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
-        }
+                if (uiState is AuthUiState.Error) {
+                    Text(
+                        text = (uiState as AuthUiState.Error).message,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
-        LaunchedEffect(state) {
-            if (state is AuthState.Success) onAuthSuccess()
+                Button(
+                    onClick = {
+                        if (isRegisterMode) {
+                            viewModel.register(username, password)
+                        } else {
+                            viewModel.login(username, password)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = if (isRegisterMode) "Register" else "Login")
+                }
+
+                TextButton(
+                    onClick = {
+                        viewModel.toggleAuthMode()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = if (isRegisterMode)
+                            "Already have an account? Login"
+                        else
+                            "Don't have an account? Sign Up"
+                    )
+                }
+            }
         }
     }
 }
